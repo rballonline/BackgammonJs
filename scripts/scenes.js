@@ -66,8 +66,24 @@ Crafty.scene('RollToSeeWhoGoesFirst', function() {
 Crafty.scene('Game', function () {
     var board = Crafty.e('Board');
 
-    var pip = board.pips[1];
-    pip.addChecker(Crafty.e('WhiteChecker'));
+    board.pips[0].addChecker(Crafty.e('WhiteChecker'));
+    board.pips[0].addChecker(Crafty.e('WhiteChecker'));
+
+    board.pips[11].addChecker(Crafty.e('WhiteChecker'));
+    board.pips[11].addChecker(Crafty.e('WhiteChecker'));
+    board.pips[11].addChecker(Crafty.e('WhiteChecker'));
+    board.pips[11].addChecker(Crafty.e('WhiteChecker'));
+    board.pips[11].addChecker(Crafty.e('WhiteChecker'));
+
+    board.pips[16].addChecker(Crafty.e('WhiteChecker'));
+    board.pips[16].addChecker(Crafty.e('WhiteChecker'));
+    board.pips[16].addChecker(Crafty.e('WhiteChecker'));
+
+    board.pips[18].addChecker(Crafty.e('WhiteChecker'));
+    board.pips[18].addChecker(Crafty.e('WhiteChecker'));
+    board.pips[18].addChecker(Crafty.e('WhiteChecker'));
+    board.pips[18].addChecker(Crafty.e('WhiteChecker'));
+    board.pips[18].addChecker(Crafty.e('WhiteChecker'));
 
     var pip2 = board.pips[5];
     pip2.addChecker(Crafty.e('BlackChecker'));

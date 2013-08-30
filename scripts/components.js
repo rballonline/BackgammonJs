@@ -65,6 +65,7 @@ Crafty.c('Board', {
 Crafty.c('Pip', {
     init: function() {
         this.requires('Actor').attr({ h: 200, w: 50, z: 4 });
+        this.checkers = [];
     },
     whitePos: 0,
     blackPos: 0,
@@ -79,21 +80,27 @@ Crafty.c('Pip', {
             this.attr({ x: 50 * pipPos, y: 400});
         }
         else if(pipPos > 10 && pipPos < 16) {
-            this.attr({ x: 50 * this.blackPos, y: 10}).flip('Y');
+            this.attr({ x: 50 * this.blackPos, y: 0}).flip('Y');
         }
         else if(pipPos > 15) {
-            this.attr({ x: 50 * (this.blackPos - 1), y: 10}).flip('Y');
+            this.attr({ x: 50 * (this.blackPos - 1), y: 0}).flip('Y');
         }
         return this;
     },
     drawCheckers: function() {
         var numOfCheckers = this.checkers.length;
+        var ySpacer = 50;
+        var yOffset = 0;
+        if(this.whitePos > 10)
+        {
+            ySpacer *= -1;
+            yOffset = 400;
+        }
         for(var i = 0; i < numOfCheckers; i++) {
-            var ySpacer = 50;
             if(numOfCheckers > 4) {
                 ySpacer = 200 / numOfCheckers;
             }
-            this.checkers[i].attr({ x: this.x, z: 5 + i, y: ySpacer * i });
+            this.checkers[i].attr({ x: this.x, z: 5 + i, y: yOffset + (ySpacer * i) });
         }
     },
     addChecker: function(checker) {
