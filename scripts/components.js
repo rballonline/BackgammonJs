@@ -46,39 +46,73 @@ Crafty.c('6', {
     }
 });
 
+Crafty.c('Board', {
+    pips: [],
+    init: function() {
+        for(var i = 1; i < 21; i++) { // drawBoard
+            if(i%2 == 0) {
+                Crafty.e('BlackPip').setPos(i);
+            }
+            else {
+                Crafty.e('WhitePip').setPos(i);
+            }
+            var pip = Crafty.e('HighlightPip').setPos(i);
+            this.pips.push(pip);
+        }
+    }
+});
+
 Crafty.c('Pip', {
     init: function() {
-        this.requires('Actor').attr({ h: 200, w: 50 });
+        this.requires('Actor').attr({ h: 200, w: 50, z: 4 });
     },
     whitePos: 0,
     blackPos: 0,
+    checkers: [],
     setPos: function(pipPos) {
         this.whitePos = pipPos;
         this.blackPos = 21 - pipPos;
         if(pipPos < 6) {
-            this.attr({ x: 50*(pipPos-1), y: 400 });
+            this.attr({ x: 50 * (pipPos - 1), y: 400 });
         }
         else if(pipPos > 5 && pipPos < 11) {
-            this.attr({ x: 50*pipPos, y: 400});
+            this.attr({ x: 50 * pipPos, y: 400});
         }
         else if(pipPos > 10 && pipPos < 16) {
-            this.attr({ x: 50*this.blackPos, y: 10}).flip('Y');
+            this.attr({ x: 50 * this.blackPos, y: 10}).flip('Y');
         }
         else if(pipPos > 15) {
-            this.attr({ x: 50*(this.blackPos-1), y: 10}).flip('Y');
+            this.attr({ x: 50 * (this.blackPos - 1), y: 10}).flip('Y');
         }
+        return this;
+    },
+    drawCheckers: function() {
+        var numOfCheckers = this.checkers.length;
+        for(var i = 0; i < numOfCheckers; i++) {
+            var ySpacer = 50;
+            if(numOfCheckers > 4) {
+                ySpacer = 200 / numOfCheckers;
+            }
+            this.checkers[i].attr({ x: this.x, z: 5 + i, y: ySpacer * i });
+        }
+    },
+    addChecker: function(checker) {
+        this.checkers.push(checker);
+        this.drawCheckers();
+    },
+    removeChecker: function() {
+        this.checkers.pop();
+        this.drawCheckers();
     }
 });
 Crafty.c('BlackPip', {
     init: function() {
-        this.requires('Pip, spr_black_pip')
-            .attr({ z: 2 });
+        this.requires('Pip, spr_black_pip');
     }
 });
 Crafty.c('WhitePip', {
     init: function() {
-        this.requires('Pip, spr_white_pip')
-            .attr({ z: 20 });
+        this.requires('Pip, spr_white_pip');
     }
 });
 Crafty.c('HighlightPip', {
@@ -92,7 +126,17 @@ Crafty.c('HighlightPip', {
 
 Crafty.c('Checker', {
     init: function() {
-         this.requires('Actor');
+        this.requires('Actor').attr({ h: 50, w: 50 });
+    }
+});
+Crafty.c('WhiteChecker', {
+    init: function() {
+        this.requires('Checker, spr_white');
+    }
+});
+Crafty.c('BlackChecker', {
+    init: function() {
+        this.requires('Checker, spr_black');
     }
 });
 

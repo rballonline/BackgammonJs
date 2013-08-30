@@ -7,7 +7,7 @@ var Game = {
     turn: 'White',
 	start: function () {
 		Crafty.init(Game.width, Game.height);
-		Crafty.background('darkgreen');
+		Crafty.background('#fafaf2');
 		Crafty.scene('Loading');
 	},
 	newGame: function() {

@@ -64,16 +64,13 @@ Crafty.scene('RollToSeeWhoGoesFirst', function() {
 });
 
 Crafty.scene('Game', function () {
-    for(var i = 1; i < 21; i++) { // drawBoard
-        if(i%2 == 0) {
-            Crafty.e('BlackPip').setPos(i);
-        }
-        else {
-            Crafty.e('WhitePip').setPos(i);
-        }
-        Crafty.e('HighlightPip').setPos(i);
-    }
+    var board = Crafty.e('Board');
 
+    var pip = board.pips[1];
+    pip.addChecker(Crafty.e('WhiteChecker'));
+
+    var pip2 = board.pips[5];
+    pip2.addChecker(Crafty.e('BlackChecker'));
 });
 
 Crafty.scene('GameOver', function () {
