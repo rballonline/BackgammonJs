@@ -4,6 +4,8 @@ var Game = {
 	height: 768,
     blackOff: 0,
     whiteOff: 0,
+    dice: [],
+    cubeValue: 1,
     turn: 'White',
 	start: function () {
 		Crafty.init(Game.width, Game.height);
@@ -18,5 +20,15 @@ var Game = {
 	},
     playGame: function() {
         Crafty.scene('Game');
+    },
+    rollDice: function() {
+        var di1 = Crafty.math.randomInt(1,6);
+        var di2 = Crafty.math.randomInt(1,6);
+        this.dice.push(di1);
+        this.dice.push(di2);
+        if(di1 == di2) { // handle doubles
+            this.dice.push(di1);
+            this.dice.push(di2);
+        }
     }
 };

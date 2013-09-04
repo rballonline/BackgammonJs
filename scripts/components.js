@@ -48,24 +48,36 @@ Crafty.c('6', {
 
 Crafty.c('Board', {
     pips: [],
-    dice: [],
+    blackCheckers: [],
+    whiteCheckers: [],
     activeChecker: null,
     init: function() {
-        for(var i = 1; i < 25; i++) { // drawBoard
+        for(var i = 0; i < 24; i++) { // drawBoard
+            var pip;
             if(i%2 == 0) {
-                Crafty.e('BlackPip').setPos(i);
+                pip = Crafty.e('BlackPip').setPos(i);
             }
             else {
-                Crafty.e('WhitePip').setPos(i);
+                pip = Crafty.e('WhitePip').setPos(i);
             }
-            var pip = Crafty.e('HighlightPip').setPos(i);
             this.pips.push(pip);
         }
     },
+    addChecker: function(side, pos) {
+        var checker = Crafty.e(side);
+        checker.pipPosition = pos;
+        this.pips[pos].addChecker(checker);
+        if(side == 'WhiteChecker') {
+            this.whiteCheckers.push(checker);
+        }
+        else {
+            this.blackCheckers.push(checker);
+        }
+    },
     moveChecker: function(fromPos, toPos) {
-        var checker = this.pips[fromPos-1].removeChecker();
-        if(toPos < 25) {
-            this.pips[toPos-1].addChecker(checker);
+        var checker = this.pips[fromPos].removeChecker();
+        if(toPos < 24) {
+            this.pips[toPos].addChecker(checker);
         }
         else {
             // move off board
@@ -80,25 +92,34 @@ Crafty.c('Board', {
             }
         }
     },
-    rollDice: function() {
-        var di1 = Crafty.math.randomInt(1,6);
-        var di2 = Crafty.math.randomInt(1,6);
-        this.dice.push(di1);
-        this.dice.push(di2);
-        if(di1 == di2) { // handle doubles
-            this.dice.push(di1);
-            this.dice.push(di2);
+    highlightPieces: function(turn, dice) {
+        var piecesMoving = this.whiteCheckers;
+        var piecesDefending = this.blackCheckers;
+        var direction = 1;
+        if(turn == 'Black'){
+            piecesMoving = this.blackCheckers;
+            piecesDefending = this.whiteCheckers;
+            direction = -1;
         }
-    },
-    highlightPieces: function(whiteTurn) {
-        for(var i = 0; i < this.pips.length; i++) {
-            var pip = this.pips[i];
-            if(pip.checkers.length > 0) {
-                if(whiteTurn) {
+        var potentialPositions = _.uniq(_.pluck(piecesMoving, 'pipPosition')); // loving underscore right about now
 
+        for(var i = 0; i < potentialPositions.length; i++) {
+            var currentPosition = potentialPositions[i];
+            for(var j = 0; j < dice.length; j++) {
+                var endingPosition = currentPosition + dice[j];
+                if(endingPosition > 23) {
+                    if(turn == 'White' && _.min(potentialPositions) > 17) {
+                        //board.activateWhiteBar();
+                    }
+                    else if(turn == 'Black' && _.max(potentialPositions) < 6) {
+                        //board.activateBlackBar();
+                    }
                 }
                 else {
-
+                    var endingPip = this.pips[endingPosition];
+                    if(endingPip.checkers.length < 2) {
+                        this.pips[currentPosition].activateChecker();
+                    }
                 }
             }
         }
@@ -110,26 +131,25 @@ Crafty.c('Pip', {
         this.requires('Actor').attr({ h: 200, w: 50, z: 4 });
         this.checkers = [];
     },
-    whitePos: 0,
     blackPos: 0,
     redraw: false,
     checkers: [],
     setPos: function(pipPos) {
         this.whitePos = pipPos;
-        this.blackPos = 25 - pipPos;
-        if(pipPos < 7) {
-            this.attr({ x: 50 * (pipPos - 1), y: 400 });
+        this.blackPos = 23 - pipPos;
+        if(pipPos < 6) {
+            this.attr({ x: 50 * (pipPos), y: 400 });
         }
-        else if(pipPos > 6 && pipPos < 13) {
-            this.attr({ x: 50 * pipPos, y: 400});
+        else if(pipPos > 5 && pipPos < 12) {
+            this.attr({ x: 50 * (pipPos + 1), y: 400});
         }
-        else if(pipPos > 12 && pipPos < 18) {
+        else if(pipPos > 11 && pipPos < 17) {
+            this.attr({ x: 50 * (this.blackPos + 1), y: 0}).flip('Y');
+        }
+        else if(pipPos > 16) {
             this.attr({ x: 50 * this.blackPos, y: 0}).flip('Y');
         }
-        else if(pipPos > 17) {
-            this.attr({ x: 50 * (this.blackPos - 1), y: 0}).flip('Y');
-        }
-        Crafty.e('DisplayText').attr({x: this.x, y: pipPos < 13 ? this.y + 187 : this.y}).textColor('#000000').textFont({ size: '10px'}).text(this.whitePos + '    (' + this.blackPos + ')');
+        Crafty.e('DisplayText').attr({x: this.x, y: pipPos < 12 ? this.y + 187 : this.y}).textFont({ size: '10px'}).text(this.whitePos + '    (' + this.blackPos + ')');
         return this;
     },
     drawCheckers: function() {
@@ -139,7 +159,7 @@ Crafty.c('Pip', {
         if(numOfCheckers > 4) {
             ySpacer = 200 / numOfCheckers;
         }
-        if(this.whitePos < 13)
+        if(this.whitePos < 12)
         {
             ySpacer *= -1;
             yOffset = 550;
@@ -150,9 +170,8 @@ Crafty.c('Pip', {
         }
     },
     activateChecker: function() {
-        var activeChecker = this.checkers.pop();
-        this.checkers.push(Crafty.e('HighlightChecker'));
-        return activeChecker;
+        var checker = _.last(this.checkers);
+        checker.activate();
     },
     deactivateChecker: function(checker) {
         this.checkers.pop(); // remove highlight
@@ -177,18 +196,18 @@ Crafty.c('WhitePip', {
         this.requires('Pip, spr_white_pip');
     }
 });
-Crafty.c('HighlightPip', {
-    init: function() {
-        this.requires('Pip, spr_highlight_pip')
-            .attr({ z: 20 });
-        this.alpha = .4;
-        this.visible = false;
-    }
-});
 
 Crafty.c('Checker', {
+    pipPosition: 0,
+    side: 'White',
     init: function() {
-        this.requires('Actor').attr({ h: 50, w: 50 });
+        this.requires('Actor, SpriteAnimation').attr({ h: 50, w: 50 });
+    },
+    activate: function () {
+        this.animate('ActivateChecker', 1, 0, 1).animate('ActivateChecker', 1, 1);
+    },
+    deactivate: function() {
+        this.animate('ActivateChecker', 0, 0, 0).animate('ActivateChecker', 1, 1);
     }
 });
 Crafty.c('WhiteChecker', {
@@ -199,11 +218,7 @@ Crafty.c('WhiteChecker', {
 Crafty.c('BlackChecker', {
     init: function() {
         this.requires('Checker, spr_black');
-    }
-});
-Crafty.c('HighlightChecker', {
-    init: function() {
-        this.requires('Checker, spr_highlight');
+        this.side = 'Black';
     }
 });
 
@@ -211,7 +226,7 @@ Crafty.c('DisplayText', {
 	init: function() {
 		this.requires('2D, DOM, Text, Tween')
 			.textFont({ size: '30px', type: 'normal', family: 'Consolas' })
-			.textColor('#ffffff')
+			.textColor('#000000')
 			.attr({ w: Game.width, h: 80, z: 101 })
 			.css('text-align: center');
 	},

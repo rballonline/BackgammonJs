@@ -6,22 +6,20 @@ Crafty.scene('Loading', function () {
 		y: 120
 	}).text('Loading');
 
-	Crafty.load(['assets/black.png', 'assets/white.png', 'assets/highlight.png', 'assets/white_pip.png', 'assets/black_pip.png', 'assets/highlight_pip.png', 'assets/black_off.png', 'assets/white_off.png', 'assets/1.png', 'assets/2.png', 'assets/3.png', 'assets/4.png', 'assets/5.png', 'assets/6.png'],
+	Crafty.load(['assets/black.png', 'assets/white.png', 'assets/white_pip.png', 'assets/black_pip.png', 'assets/black_off.png', 'assets/white_off.png', 'assets/1.png', 'assets/2.png', 'assets/3.png', 'assets/4.png', 'assets/5.png', 'assets/6.png'],
 		function () {
             Crafty.sprite(50, 'assets/black.png', { spr_black: [0, 0] });
             Crafty.sprite(50, 'assets/white_off.png', { spr_white_off: [0, 0] });
             Crafty.sprite(50, 'assets/black_off.png', { spr_black_off: [0, 0] });
             Crafty.sprite(50, 'assets/white.png', { spr_white: [0, 0] });
-            Crafty.sprite(50, 'assets/highlight.png', { spr_highlight: [0, 0] });
             Crafty.sprite(70, 'assets/1.png', { spr_1: [0, 0] });
             Crafty.sprite(70, 'assets/2.png', { spr_2: [0, 0] });
             Crafty.sprite(70, 'assets/3.png', { spr_3: [0, 0] });
             Crafty.sprite(70, 'assets/4.png', { spr_4: [0, 0] });
             Crafty.sprite(70, 'assets/5.png', { spr_5: [0, 0] });
             Crafty.sprite(70, 'assets/6.png', { spr_6: [0, 0] });
-            Crafty.sprite(50, 200, 'assets/white_pip.png', { spr_white_pip: [0, 0] });
-            Crafty.sprite(50, 200, 'assets/black_pip.png', { spr_black_pip: [0, 0] });
-            Crafty.sprite(50, 200, 'assets/highlight_pip.png', { spr_highlight_pip: [0, 0] });
+            Crafty.sprite(50, 275, 'assets/white_pip.png', { spr_white_pip: [0, 0] });
+            Crafty.sprite(50, 275, 'assets/black_pip.png', { spr_black_pip: [0, 0] });
 /*
             Crafty.audio.add({
                 shoot: ["assets/sounds/laser1.wav",
@@ -68,19 +66,23 @@ Crafty.scene('RollToSeeWhoGoesFirst', function() {
 Crafty.scene('Game', function () {
     var board = Crafty.e('Board');
 
-    _(2).times(function() { board.pips[0].addChecker(Crafty.e('WhiteChecker')); });
-    _(5).times(function() { board.pips[11].addChecker(Crafty.e('WhiteChecker')); });
-    _(3).times(function() { board.pips[16].addChecker(Crafty.e('WhiteChecker')); });
-    _(5).times(function() { board.pips[18].addChecker(Crafty.e('WhiteChecker')); });
+    _(2).times(function() { board.addChecker('WhiteChecker', 0); });
+    _(5).times(function() { board.addChecker('WhiteChecker', 11); });
+    _(3).times(function() { board.addChecker('WhiteChecker', 16); });
+    _(5).times(function() { board.addChecker('WhiteChecker', 18); });
 
-    _(2).times(function() { board.pips[23].addChecker(Crafty.e('BlackChecker')); });
-    _(5).times(function() { board.pips[12].addChecker(Crafty.e('BlackChecker')); });
-    _(3).times(function() { board.pips[7].addChecker(Crafty.e('BlackChecker')); });
-    _(5).times(function() { board.pips[5].addChecker(Crafty.e('BlackChecker')); });
-    board.drawCheckers();
+    _(2).times(function() { board.addChecker('BlackChecker', 23); });
+    _(5).times(function() { board.addChecker('BlackChecker', 12); });
+    _(3).times(function() { board.addChecker('BlackChecker', 7); });
+    _(5).times(function() { board.addChecker('BlackChecker', 5); });
+     board.drawCheckers();
 
     Crafty.e('DisplayText').at(250).text(Game.turn + ' to move');
-    board.highlightPieces();
+    Game.rollDice();
+    for(var i = 0; i < Game.dice.length; i++) {
+        Crafty.e(Game.dice[i].toString()).at(300 + (i * 70), 255);
+    }
+    board.highlightPieces(Game.turn, Game.dice);
 
 });
 
