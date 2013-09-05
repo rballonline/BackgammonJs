@@ -1,3 +1,5 @@
+
+
 Crafty.c('Actor', {
   init: function() {
     this.requires('2D, Canvas');
@@ -47,10 +49,6 @@ Crafty.c('6', {
 });
 
 Crafty.c('Board', {
-    pips: [],
-    blackCheckers: [],
-    whiteCheckers: [],
-    activeChecker: null,
     init: function() {
         for(var i = 0; i < 24; i++) { // drawBoard
             var pip;
@@ -60,82 +58,22 @@ Crafty.c('Board', {
             else {
                 pip = Crafty.e('WhitePip').setPos(i);
             }
-            this.pips.push(pip);
-        }
-    },
-    addChecker: function(side, pos) {
-        var checker = Crafty.e(side);
-        checker.pipPosition = pos;
-        this.pips[pos].addChecker(checker);
-        if(side == 'WhiteChecker') {
-            this.whiteCheckers.push(checker);
-        }
-        else {
-            this.blackCheckers.push(checker);
-        }
-    },
-    moveChecker: function(fromPos, toPos) {
-        var checker = this.pips[fromPos].removeChecker();
-        if(toPos < 24) {
-            this.pips[toPos].addChecker(checker);
-        }
-        else {
-            // move off board
-        }
-        this.drawCheckers();
-    },
-    drawCheckers: function() {
-        for(var i = 0; i < this.pips.length; i++) {
-            if(this.pips[i].redraw) {
-                this.pips[i].drawCheckers();
-                this.pips[i].redraw = false;
-            }
-        }
-    },
-    highlightPieces: function(turn, dice) {
-        var piecesMoving = this.whiteCheckers;
-        var piecesDefending = this.blackCheckers;
-        var direction = 1;
-        if(turn == 'Black'){
-            piecesMoving = this.blackCheckers;
-            piecesDefending = this.whiteCheckers;
-            direction = -1;
-        }
-        var potentialPositions = _.uniq(_.pluck(piecesMoving, 'pipPosition')); // loving underscore right about now
-
-        for(var i = 0; i < potentialPositions.length; i++) {
-            var currentPosition = potentialPositions[i];
-            for(var j = 0; j < dice.length; j++) {
-                var endingPosition = currentPosition + dice[j];
-                if(endingPosition > 23) {
-                    if(turn == 'White' && _.min(potentialPositions) > 17) {
-                        //board.activateWhiteBar();
-                    }
-                    else if(turn == 'Black' && _.max(potentialPositions) < 6) {
-                        //board.activateBlackBar();
-                    }
-                }
-                else {
-                    var endingPip = this.pips[endingPosition];
-                    if(endingPip.checkers.length < 2) {
-                        this.pips[currentPosition].activateChecker();
-                    }
-                }
-            }
+            Game.pips.push(pip);
         }
     }
 });
 
 Crafty.c('Pip', {
     init: function() {
-        this.requires('Actor').attr({ h: 200, w: 50, z: 4 });
+        this.requires('Actor, SpriteAnimation, Mouse').attr({ h: 200, w: 50, z: 4 });
         this.checkers = [];
     },
+    position: 0,
     blackPos: 0,
     redraw: false,
     checkers: [],
     setPos: function(pipPos) {
-        this.whitePos = pipPos;
+        this.position = pipPos;
         this.blackPos = 23 - pipPos;
         if(pipPos < 6) {
             this.attr({ x: 50 * (pipPos), y: 400 });
@@ -149,23 +87,20 @@ Crafty.c('Pip', {
         else if(pipPos > 16) {
             this.attr({ x: 50 * this.blackPos, y: 0}).flip('Y');
         }
-        Crafty.e('DisplayText').attr({x: this.x, y: pipPos < 12 ? this.y + 187 : this.y}).textFont({ size: '10px'}).text(this.whitePos + '    (' + this.blackPos + ')');
         return this;
     },
     drawCheckers: function() {
         var numOfCheckers = this.checkers.length;
         var ySpacer = 50;
         var yOffset = 0;
-        if(numOfCheckers > 4) {
-            ySpacer = 200 / numOfCheckers;
+        if(numOfCheckers > 5) {
+            ySpacer = 250 / numOfCheckers;
         }
-        if(this.whitePos < 12)
-        {
+        if(this.position < 12) {
             ySpacer *= -1;
-            yOffset = 550;
+            yOffset = 625;
         }
         for(var i = 0; i < numOfCheckers; i++) {
-            console.log('x: ' + this.x + ' y: ' + (yOffset + (ySpacer * i)));
             this.checkers[i].attr({ x: this.x, z: 5 + i, y: yOffset + (ySpacer * i) });
         }
     },
@@ -173,9 +108,9 @@ Crafty.c('Pip', {
         var checker = _.last(this.checkers);
         checker.activate();
     },
-    deactivateChecker: function(checker) {
-        this.checkers.pop(); // remove highlight
-        this.checkers.push(checker);
+    deactivateChecker: function() {
+        var checker = _.last(this.checkers);
+        checker.deactivate();
     },
     addChecker: function(checker) {
         this.checkers.push(checker);
@@ -183,7 +118,18 @@ Crafty.c('Pip', {
     },
     removeChecker: function() {
         var checker = this.checkers.pop();
+        checker.destroy();
         this.redraw = true;
+    },
+    activate: function () {
+        this.animate('ActivatePip', 1, 0, 1).animate('ActivatePip', 1, 1);
+        this.bind('Click', function() {
+            Crafty.trigger('PipClicked', this.position);
+        });
+    },
+    deactivate: function() {
+        this.animate('ActivatePip', 0, 0, 0).animate('ActivatePip', 1, 1);
+        this.unbind('Click');
     }
 });
 Crafty.c('BlackPip', {
@@ -198,16 +144,21 @@ Crafty.c('WhitePip', {
 });
 
 Crafty.c('Checker', {
-    pipPosition: 0,
+    position: 0,
     side: 'White',
     init: function() {
-        this.requires('Actor, SpriteAnimation').attr({ h: 50, w: 50 });
+        this.requires('Actor, Mouse, SpriteAnimation').attr({ h: 50, w: 50 });
+
     },
     activate: function () {
         this.animate('ActivateChecker', 1, 0, 1).animate('ActivateChecker', 1, 1);
+        this.bind('Click', function() {
+            Crafty.trigger('CheckerClicked', this.position);
+        });
     },
     deactivate: function() {
         this.animate('ActivateChecker', 0, 0, 0).animate('ActivateChecker', 1, 1);
+        this.unbind('Click');
     }
 });
 Crafty.c('WhiteChecker', {

@@ -59,30 +59,30 @@ Crafty.scene('RollToSeeWhoGoesFirst', function() {
     }
 
     Crafty.e('DisplayText').at(10).text(Game.turn + ' wins the roll. Tap or click to continue').bind('KeyDown', function () {
-        Game.playGame();
+        Game.startGame();
     });
 });
 
 Crafty.scene('Game', function () {
     var board = Crafty.e('Board');
 
-    _(2).times(function() { board.addChecker('WhiteChecker', 0); });
-    _(5).times(function() { board.addChecker('WhiteChecker', 11); });
-    _(3).times(function() { board.addChecker('WhiteChecker', 16); });
-    _(5).times(function() { board.addChecker('WhiteChecker', 18); });
+    _(2).times(function() { Game.addChecker('WhiteChecker', 0); });
+    _(5).times(function() { Game.addChecker('WhiteChecker', 11); });
+    _(3).times(function() { Game.addChecker('WhiteChecker', 16); });
+    _(5).times(function() { Game.addChecker('WhiteChecker', 18); });
 
-    _(2).times(function() { board.addChecker('BlackChecker', 23); });
-    _(5).times(function() { board.addChecker('BlackChecker', 12); });
-    _(3).times(function() { board.addChecker('BlackChecker', 7); });
-    _(5).times(function() { board.addChecker('BlackChecker', 5); });
-     board.drawCheckers();
+    _(2).times(function() { Game.addChecker('BlackChecker', 23); });
+    _(5).times(function() { Game.addChecker('BlackChecker', 12); });
+    _(3).times(function() { Game.addChecker('BlackChecker', 7); });
+    _(5).times(function() { Game.addChecker('BlackChecker', 5); });
+     Game.drawCheckers();
 
     Crafty.e('DisplayText').at(250).text(Game.turn + ' to move');
     Game.rollDice();
     for(var i = 0; i < Game.dice.length; i++) {
         Crafty.e(Game.dice[i].toString()).at(300 + (i * 70), 255);
     }
-    board.highlightPieces(Game.turn, Game.dice);
+    Game.highlightPiecesThatCanMove();
 
 });
 
