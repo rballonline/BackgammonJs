@@ -1,5 +1,3 @@
-
-
 Crafty.c('Actor', {
   init: function() {
     this.requires('2D, Canvas');
@@ -48,16 +46,25 @@ Crafty.c('6', {
     }
 });
 
+Crafty.c('Off', {
+    init: function() {
+        this.requires('Actor, spr_off').attr({ h: 50, w: 50 });
+    }
+});
+Crafty.c('Bar', {
+    init: function() {
+        this.requires('Actor, spr_bar').attr({ h: 50, w: 56 });
+    }
+});
+
 Crafty.c('Board', {
     init: function() {
+        _(13).times(function(i) {
+            Crafty.e('Off').at(0, i * 50);
+            Crafty.e('Bar').at(350, i * 50);
+        });
         for(var i = 0; i < 24; i++) { // drawBoard
-            var pip;
-            if(i%2 == 0) {
-                pip = Crafty.e('BlackPip').setPos(i);
-            }
-            else {
-                pip = Crafty.e('WhitePip').setPos(i);
-            }
+            var pip = i % 2 == 0 ? Crafty.e('BlackPip').setPos(i) : Crafty.e('WhitePip').setPos(i);
             Game.pips.push(pip);
         }
     }
@@ -74,19 +81,20 @@ Crafty.c('Pip', {
     active: false,
     checkers: [],
     setPos: function(pipPos) {
+        var barWidth = 50, bothWidth = 56;
         this.position = pipPos;
         this.blackPos = 23 - pipPos;
         if(pipPos < 6) {
-            this.attr({ x: 50 * (pipPos), y: 400 });
+            this.attr({ x: barWidth + 50 * (pipPos), y: 375 });
         }
         else if(pipPos > 5 && pipPos < 12) {
-            this.attr({ x: 50 * (pipPos + 1), y: 400});
+            this.attr({ x: bothWidth + 50 * (pipPos + 1), y: 375});
         }
-        else if(pipPos > 11 && pipPos < 17) {
-            this.attr({ x: 50 * (this.blackPos + 1), y: 0}).flip('Y');
+        else if(pipPos > 11 && pipPos < 18) {
+            this.attr({ x: bothWidth + 50 * (this.blackPos + 1), y: 0}).flip('Y');
         }
-        else if(pipPos > 16) {
-            this.attr({ x: 50 * this.blackPos, y: 0}).flip('Y');
+        else if(pipPos > 17) {
+            this.attr({ x: barWidth + 50 * this.blackPos, y: 0}).flip('Y');
         }
         return this;
     },
@@ -99,7 +107,7 @@ Crafty.c('Pip', {
         }
         if(this.position < 12) {
             ySpacer *= -1;
-            yOffset = 625;
+            yOffset = 600;
         }
         for(var i = 0; i < numOfCheckers; i++) {
             this.checkers[i].attr({ x: this.x, z: 5 + i, y: yOffset + (ySpacer * i) });
@@ -127,6 +135,11 @@ Crafty.c('Pip', {
         this.bind('Click', function() {
             Crafty.trigger('PipClicked', this.position);
         });
+        for(var i = 0; i < this.checkers.length; i++) {   // bind all the checkers on the pip too
+            this.checkers[i].bind('Click', function() {
+                Crafty.trigger('PipClicked', this.position);
+            });
+        }
         this.active = true;
     },
     deactivate: function() {
@@ -178,14 +191,14 @@ Crafty.c('BlackChecker', {
 
 Crafty.c('DisplayText', {
 	init: function() {
-		this.requires('2D, DOM, Text, Tween')
+		this.requires('2D, DOM, Text')
 			.textFont({ size: '30px', type: 'normal', family: 'Consolas' })
 			.textColor('#000000')
 			.attr({ w: Game.width, h: 80, z: 101 })
 			.css('text-align: center');
 	},
-	at: function(y) {
-		this.attr({y: y});
+	at: function(x, y) {
+		this.attr({x: x, y: y});
 		return this;
 	}
 });

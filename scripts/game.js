@@ -32,6 +32,7 @@ var game = function () {
 			this.dice.push(di2);
 		}
 	};
+
 	this.getPositionsPieceCouldMoveTo = function (fromPos) {
 		var positionsPieceCouldMoveTo = [];
 
@@ -44,7 +45,7 @@ var game = function () {
 					positionsPieceCouldMoveTo.push(24);
 				}
 				else if (this.turn == 'Black' && _.max(this.currentPositions) < 6) {
-					positionsPieceCouldMoveTo.push(0);
+					positionsPieceCouldMoveTo.push(-1);
 				}
 			}
 			else {
@@ -82,11 +83,29 @@ var game = function () {
 		}
 	};
 
+    var movement = {
+        checkerSelected: false,
+        fromPosition: 0
+    };
+
+    this.hitChecker = function(atPos) {
+        var moveToPos = 24;
+        if(this.pips[atPos].checkers[0].side == 'White') {
+            moveToPos = -1;
+        }
+
+        this.pips[atPos].removeChecker();
+    };
+
 	this.moveChecker = function (fromPos, toPos) {
 		this.pips[fromPos].redraw = true;
 		this.pips[fromPos].removeChecker();
+        movement.checkerSelected = false;
 
 		if (toPos < 24 || toPos > -1) {
+            if(this.pips[toPos].checkers.length == 1 && this.pips[toPos].checkers[0].side != this.turn) {
+                this.hitChecker(toPos);
+            }
 			this.addChecker(this.turn + 'Checker', toPos);
 			_.each(_.where(this.pips, { active: true }), function (pip) { pip.deactivate(); });
 			this.pips[toPos].redraw = true;
@@ -106,14 +125,41 @@ var game = function () {
 				this.pips[i].redraw = false;
 			}
 		}
-	}
-
-	var movement = {
-		checkerSelected: false,
-		fromPosition: 0
 	};
+
+    this.gameOver = function() {
+        Crafty.scene('GameOver');
+    };
+
+    this.takeTurn = function() {
+        Crafty.e('DisplayText').at(65, 315).text(this.turn + ' to move');
+        this.rollDice();
+        for(var i = 0; i < this.dice.length; i++) {
+            Crafty.e(this.dice[i].toString()).at(435 + (i * 70), 305);
+        }
+        this.highlightPiecesThatCanMove();
+    };
+
+    this.endTurn = function() {
+        var pieces = this.turn == 'White' ? this.whiteCheckers : this.blackCheckers;
+        this.currentPositions = _.uniq(_.pluck(pieces, 'position'));
+        if((this.turn == 'White' && _.min(this.currentPositions) > 23) || (this.turn == 'Black' && _.max(this.currentPositions) < 0)) {
+            this.gameOver();
+        }
+        else {
+            this.turn = this.turn == 'White' ? 'Black' : 'White';
+            this.takeTurn();
+        }
+    };
+
 	Crafty.bind('PipClicked', function (atPos) {
 		Game.moveChecker(movement.fromPosition, atPos);
+        if(Game.dice.length > 0) {
+            Game.highlightPiecesThatCanMove();
+        }
+        else {
+            Game.endTurn();
+        }
 	});
 
 	Crafty.bind('CheckerClicked', function (atPos) {
@@ -142,7 +188,6 @@ var game = function () {
 				Game.pips[positions[i]].activate();
 			}
 		}
-
 	});
 };
 var Game = new game();
