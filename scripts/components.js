@@ -71,6 +71,7 @@ Crafty.c('Pip', {
     position: 0,
     blackPos: 0,
     redraw: false,
+    active: false,
     checkers: [],
     setPos: function(pipPos) {
         this.position = pipPos;
@@ -126,10 +127,12 @@ Crafty.c('Pip', {
         this.bind('Click', function() {
             Crafty.trigger('PipClicked', this.position);
         });
+        this.active = true;
     },
     deactivate: function() {
         this.animate('ActivatePip', 0, 0, 0).animate('ActivatePip', 1, 1);
         this.unbind('Click');
+        this.active = true;
     }
 });
 Crafty.c('BlackPip', {
