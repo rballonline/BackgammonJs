@@ -131,21 +131,28 @@ Crafty.c('Pip', {
         this.redraw = true;
     },
     activate: function () {
-        this.animate('ActivatePip', 1, 0, 1).animate('ActivatePip', 1, 1);
-        this.bind('Click', function() {
-            Crafty.trigger('PipClicked', this.position);
-        });
-        for(var i = 0; i < this.checkers.length; i++) {   // bind all the checkers on the pip too
-            this.checkers[i].bind('Click', function() {
+        if(!this.active) {
+            this.animate('ActivatePip', 1, 0, 1).animate('ActivatePip', 1, 1);
+            this.bind('Click', function() {
                 Crafty.trigger('PipClicked', this.position);
             });
+            for(var i = 0; i < this.checkers.length; i++) {   // bind all the checkers on the pip too
+                this.checkers[i].bind('Click', function() {
+                    Crafty.trigger('PipClicked', this.position);
+                });
+            }
+            this.active = true;
         }
-        this.active = true;
     },
     deactivate: function() {
-        this.animate('ActivatePip', 0, 0, 0).animate('ActivatePip', 1, 1);
-        this.unbind('Click');
-        this.active = true;
+        if(this.active) {
+            this.animate('ActivatePip', 0, 0, 0).animate('ActivatePip', 1, 1);
+            this.unbind('Click');
+            for(var i = 0; i < this.checkers.length; i++) {
+                this.checkers[i].unbind('Click');
+            }
+            this.active = false;
+        }
     }
 });
 Crafty.c('BlackPip', {
@@ -162,27 +169,35 @@ Crafty.c('WhitePip', {
 Crafty.c('Checker', {
     position: 0,
     side: 'White',
+    active: false,
+    hit: false,
     init: function() {
         this.requires('Actor, Mouse, SpriteAnimation').attr({ h: 50, w: 50 });
 
     },
     activate: function () {
-        this.animate('ActivateChecker', 1, 0, 1).animate('ActivateChecker', 1, 1);
-        this.bind('Click', function() {
-            Crafty.trigger('CheckerClicked', this.position);
-        });
+        if(!this.active) {
+            this.animate('ActivateChecker', 1, 0, 1).animate('ActivateChecker', 1, 1);
+            this.bind('Click', function() {
+                Crafty.trigger('CheckerClicked', this.position);
+            });
+            this.active = true;
+        }
     },
     deactivate: function() {
-        this.animate('ActivateChecker', 0, 0, 0).animate('ActivateChecker', 1, 1);
-        this.unbind('Click');
+        if(!this.active) {
+            this.animate('ActivateChecker', 0, 0, 0).animate('ActivateChecker', 1, 1);
+            this.unbind('Click');
+            this.active = false;
+        }
     }
 });
-Crafty.c('WhiteChecker', {
+Crafty.c('White', {
     init: function() {
         this.requires('Checker, spr_white');
     }
 });
-Crafty.c('BlackChecker', {
+Crafty.c('Black', {
     init: function() {
         this.requires('Checker, spr_black');
         this.side = 'Black';
