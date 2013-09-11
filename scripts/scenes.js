@@ -70,16 +70,14 @@ Crafty.scene('Game', function () {
     var board = Crafty.e('Board');
 
     _(2).times(function() { Game.addChecker('White', 0); });
-
-    Game.hitChecker(0);
-    /*_(5).times(function() { Game.addChecker('White', 11); });
+    _(5).times(function() { Game.addChecker('White', 11); });
     _(3).times(function() { Game.addChecker('White', 16); });
     _(5).times(function() { Game.addChecker('White', 18); });
 
     _(2).times(function() { Game.addChecker('Black', 23); });
     _(5).times(function() { Game.addChecker('Black', 12); });
     _(3).times(function() { Game.addChecker('Black', 7); });
-    _(5).times(function() { Game.addChecker('Black', 5); });   */
+    _(5).times(function() { Game.addChecker('Black', 5); });
 
     Game.drawCheckers();
 

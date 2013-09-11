@@ -11,37 +11,37 @@ Crafty.c('Actor', {
 
 Crafty.c('1', {
     init: function() {
-        this.requires('Actor, spr_1')
+        this.requires('Actor, spr_1, Dice')
             .attr({ z: 5, h: 50, w: 50 });
     }
 });
 Crafty.c('2', {
     init: function() {
-        this.requires('Actor, spr_2')
+        this.requires('Actor, spr_2, Dice')
             .attr({ z: 5, h: 50, w: 50 });
     }
 });
 Crafty.c('3', {
     init: function() {
-        this.requires('Actor, spr_3')
+        this.requires('Actor, spr_3, Dice')
             .attr({ z: 5, h: 50, w: 50 });
     }
 });
 Crafty.c('4', {
     init: function() {
-        this.requires('Actor, spr_4')
+        this.requires('Actor, spr_4, Dice')
             .attr({ z: 5, h: 50, w: 50 });
     }
 });
 Crafty.c('5', {
     init: function() {
-        this.requires('Actor, spr_5')
+        this.requires('Actor, spr_5, Dice')
             .attr({ z: 5, h: 50, w: 50 });
     }
 });
 Crafty.c('6', {
     init: function() {
-        this.requires('Actor, spr_6')
+        this.requires('Actor, spr_6, Dice')
             .attr({ z: 5, h: 50, w: 50 });
     }
 });
@@ -185,7 +185,7 @@ Crafty.c('Checker', {
         }
     },
     deactivate: function() {
-        if(!this.active) {
+        if(this.active) {
             this.animate('ActivateChecker', 0, 0, 0).animate('ActivateChecker', 1, 1);
             this.unbind('Click');
             this.active = false;
