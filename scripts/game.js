@@ -145,7 +145,13 @@ var game = function () {
         var rollValue = Math.abs(toPos - fromPos);  // might require more work if movement is to multiple dice value
 		var index = _.indexOf(this.dice, rollValue);
 		this.dice.splice(index, 1);
-        Crafty(Crafty(rollValue.toString())[0]).alpha = 0.5;
+
+        for(var i = 0; i < Crafty(rollValue.toString()).length; i++) {
+            if(Crafty(Crafty(rollValue.toString())[i]).alpha == 1) {
+                Crafty(Crafty(rollValue.toString())[i]).alpha = 0.5;
+                break;
+            }
+        }
 		this.drawCheckers();
 	};
 
