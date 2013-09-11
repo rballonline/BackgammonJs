@@ -5,7 +5,6 @@ var game = function () {
 	this.pips = [];
 	this.checkers = [];
 	this.currentPositions = [];
-	this.cubeValue = 1;
 	this.turn = 'White';
 	this.start = function () {
 		Crafty.init(this.width, this.height);
