@@ -46,7 +46,7 @@ Crafty.c('6', {
     }
 });
 
-Crafty.c('Off', {
+Crafty.c('OffBar', {
     init: function() {
         this.requires('Actor, spr_off').attr({ h: 50, w: 50 });
     }
@@ -60,7 +60,7 @@ Crafty.c('Bar', {
 Crafty.c('Board', {
     init: function() {
         _(13).times(function(i) {
-            Crafty.e('Off').at(0, i * 50);
+            Crafty.e('OffBar').at(0, i * 50);
             Crafty.e('Bar').at(350, i * 50);
         });
         for(var i = 0; i < 24; i++) { // drawBoard
@@ -134,11 +134,11 @@ Crafty.c('Pip', {
         if(!this.active) {
             this.animate('ActivatePip', 1, 0, 1).animate('ActivatePip', 1, 1);
             this.bind('Click', function() {
-                Crafty.trigger('PipClicked', this.position);
+                Crafty.trigger('MoveClicked', this.position);
             });
             for(var i = 0; i < this.checkers.length; i++) {   // bind all the checkers on the pip too
                 this.checkers[i].bind('Click', function() {
-                    Crafty.trigger('PipClicked', this.position);
+                    Crafty.trigger('MoveClicked', this.position);
                 });
             }
             this.active = true;
@@ -216,4 +216,37 @@ Crafty.c('DisplayText', {
 		this.attr({x: x, y: y});
 		return this;
 	}
+});
+
+Crafty.c("OffBox", {
+    active: false,
+    position: 24,
+    init: function() {
+        this.requires('Actor, Mouse, Color').attr({ h: 150, w: 50, x: 0, y: 20, z: 5 });
+        this.color("#F3D52C");
+        this.alpha = 0;
+    },
+    activate: function() {
+        this.alpha = 0.5;
+        this.active = true;
+        this.bind('Click', function() {
+            Crafty.trigger('MoveClicked', this.position);
+        });
+    },
+    deactivate: function() {
+        this.alpha = 0;
+        this.active = false;
+        this.unbind('Click');
+    }
+});
+
+Crafty.c('WhiteOff', {
+    init: function() {
+        this.requires('Actor, Off, spr_white_off').attr({ h: 10, w: 50, x: 0, z: 5 });
+    }
+});
+Crafty.c('BlackOff', {
+    init: function() {
+        this.requires('Actor, Off, spr_black_off').attr({ h: 10, w: 50, x: 0, z: 5 });
+    }
 });

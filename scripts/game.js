@@ -5,12 +5,17 @@ var game = function () {
 	this.pips = [];
 	this.checkers = [];
 	this.currentPositions = [];
+    this.whiteOff = {};
+    this.blackOff = {};
+    this.numberOfWhitePiecesOff = 0;
+    this.numberOfBlackPiecesOff = 0;
 	this.turn = 'White';
 	this.start = function () {
 		Crafty.init(this.width, this.height);
 		Crafty.background('#fafaf2');
 		Crafty.scene('Loading');
 	};
+
 	this.newGame = function () {
 		//Crafty.scene('RollToSeeWhoGoesFirst');
 		Crafty.scene('Game');
@@ -18,12 +23,11 @@ var game = function () {
             this.text(Game.turn + ' to move');
         });
 	};
-	this.startGame = function () {
-		Crafty.scene('Game');
-	};
+
 	this.rollDice = function () {
         Crafty('Dice').destroy();
-		var di1 = 5;//Crafty.math.randomInt(1, 6);
+        this.dice = [];
+		var di1 = 6;//Crafty.math.randomInt(1, 6);
 		var di2 = 5;//Crafty.math.randomInt(1, 6);
 		this.dice.push(di1);
 		this.dice.push(di2);
@@ -131,16 +135,22 @@ var game = function () {
 		this.removeChecker(fromPos);
         movement.checkerSelected = false;
 
-		if (toPos < 24 || toPos > -1) {
+		if (toPos < 24 && toPos > -1) {
             if(this.pips[toPos].checkers.length == 1 && this.pips[toPos].checkers[0].side != this.turn) {
                 this.hitChecker(toPos);
             }
 			this.addChecker(this.turn, toPos);
             _.each(_.where(this.pips, { active: true }), function (pip) { pip.deactivate(); });
 		}
-		else {
-			// move off board
-		}
+        else if(toPos == 24) {
+            this.numberOfWhitePiecesOff++;
+        }
+        else if(toPos == -1) {
+            this.numberOfBlackPiecesOff++;
+            if(this.numberOfBlackPiecesOff == 15) {
+                this.endGame();
+            }
+        }
         var rollValue = Math.abs(toPos - fromPos);  // might require more work if movement is to multiple dice value
 		var index = _.indexOf(this.dice, rollValue);
 		this.dice.splice(index, 1);
@@ -154,13 +164,23 @@ var game = function () {
 		this.drawCheckers();
 	};
 
-    function drawNonPips(checkers, x, yOffset, ySpacer) {
+    function drawHitPieces(checkers, x, yOffset, ySpacer) {
         var numOfCheckers = checkers.length;
         if(numOfCheckers > 5) {
             ySpacer = 250 / numOfCheckers;
         }
         for(var i = 0; i < numOfCheckers; i++) {
             checkers[i].attr({ x: x, z: 5 + i, y: yOffset + (ySpacer * i) });
+        }
+    }
+
+    this.drawOffPieces = function() {
+        Crafty('Off').destroy();
+        for(var i = 0; i < this.numberOfWhitePiecesOff; i++){
+            Crafty.e('WhiteOff').at(0, 20+(i*10));
+        }
+        for(var i = 0; i < this.numberOfBlackPiecesOff; i++){
+            Crafty.e('BlackOff').at(0, 20+(i*10));
         }
     }
 
@@ -173,9 +193,10 @@ var game = function () {
 		}
 
         var hitWhites = _.where(this.checkers, { position: -1, side: 'White' });
-        drawNonPips(hitWhites, 350, 600, -50);
+        drawHitPieces(hitWhites, 350, 600, -50);
         var hitBlacks = _.where(this.checkers, { position: 24, side: 'Black' });
-        drawNonPips(hitBlacks, 350, 0, 50);
+        drawHitPieces(hitBlacks, 350, 0, 50);
+        this.drawOffPieces();
 	};
 
     this.gameOver = function() {
@@ -189,6 +210,9 @@ var game = function () {
             Crafty.e(this.dice[i].toString()).at(435 + (i * 70), 305);
         }
         this.highlightPiecesThatCanMove();
+        if(_.where(Game.checkers, { side: Game.turn, active: true }).length == 0) {
+            this.endTurn();
+        }
     };
 
     this.endTurn = function() {
@@ -203,28 +227,38 @@ var game = function () {
         }
     };
 
-	Crafty.bind('PipClicked', function (atPos) {
-		Game.moveChecker(movement.fromPosition, atPos);
+    this.endGame = function() {
+
+    };
+
+	Crafty.bind('MoveClicked', function (toPos) {
+		Game.moveChecker(movement.fromPosition, toPos);
         if(Game.dice.length > 0) {
             Game.highlightPiecesThatCanMove();
+            if(_.where(Game.checkers, { side: Game.turn, active: true }).length > 0) {
+                return;
+            }
         }
-        else {
-            Game.endTurn();
-        }
+        Game.endTurn();
 	});
 
 	Crafty.bind('CheckerClicked', function (atPos) {
 		if (movement.checkerSelected) {
 			movement.checkerSelected = false;
-			for (var i = 0; i < Game.currentPositions.length; i++) {
-				if (Game.currentPositions[i] != atPos) {
-					Game.pips[Game.currentPositions[i]].activateChecker();
-				}
-			}
+
 			var positions = Game.getPositionsPieceCouldMoveTo(atPos);
 			for (var i = 0; i < positions.length; i++) {
-				Game.pips[positions[i]].deactivate();
+                if(positions[i] > 0 && positions[i] < 24) {
+                    Game.pips[positions[i]].deactivate();
+                }
+                else if(positions[i] > 23 && Game.turn == 'White') {
+                    Game.whiteOff.deactivate();
+                }
+                else if(positions[i] < 0 && Game.turn == 'Black') {
+                    Game.blackOff.deactivate();
+                }
 			}
+            Game.highlightPiecesThatCanMove();
 		}
 		else {
 			movement.checkerSelected = true;
@@ -236,7 +270,15 @@ var game = function () {
 			}
 			var positions = Game.getPositionsPieceCouldMoveTo(atPos);
 			for (var i = 0; i < positions.length; i++) {
-				Game.pips[positions[i]].activate();
+                if(positions[i] > 0 && positions[i] < 24) {
+				    Game.pips[positions[i]].activate();
+                }
+                else if(positions[i] > 23 && Game.turn == 'White') {
+                    Game.whiteOff.activate();
+                }
+                else if(positions[i] < 0 && Game.turn == 'Black') {
+                    Game.blackOff.activate();
+                }
 			}
 		}
 	});
