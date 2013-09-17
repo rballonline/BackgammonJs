@@ -103,7 +103,7 @@ var game = function () {
 			this.pips[pos].removeChecker();
 		}
 		else {
-			var checker = _.first(_.where(this.checkers, { position: pos, side: this.turn }));
+			var checker = _.first(_.where(this.checkers, { position: pos, side: this.turn, active: true }));
 			checker.destroy();
 		}
 		for (var i = 0; i < this.checkers.length; i++) {
